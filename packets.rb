@@ -41,6 +41,18 @@ class PacketParser
   end
 end
 
+class PacketDefs
+  def self.spawn(player, id, tp)
+    tp.write((PacketWrite.new).writeByte(0x07)
+      .writeSByte(-1)
+      .writeString(player.username)
+      .writeShort(player.pos.x)
+      .writeShort(player.pos.y)
+      .writeShort(player.pos.z)
+      .writeByte(0)
+      .writeByte(0))
+  end
+end
 
 class PacketWrite
   def initialize(size = 4096)
@@ -84,8 +96,15 @@ class PacketWrite
     return self
   end
 
-  def writeIoBuffer(buffer)
-    @packet.copy(buffer, @id)
+  def writeBuffer(buffer) ## TODO: this function makes two buffers and it kinda sucks tbh
+    if buffer.is_a?(String)
+      buffer = IO::Buffer.for(buffer)
+    end
+
+    yay = IO::Buffer.new(1024)
+    yay.copy(buffer, 0)
+
+    @packet.copy(yay, @id)
     @id += 1024
     return self
   end
